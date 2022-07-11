@@ -1,12 +1,33 @@
 #!/bin/sh
-OPTIONS=$@
-# "Run Time" changes - needed for when creating a *new* directory/first-time volume map
-# A great example of this is "/var/cache/bind" for dynamic configs, and mapping it in
-# The first time around, it will not be owned by named:named, and thus it won't be writable
-chown -R root:named /etc/bind /var/run/named
-chown -R named:named /var/cache/bind
-chmod -R 770 /etc/bind /var/cache/bind /var/run/named
-find /etc/bind /var/cache/bind -type f -exec chmod 640 -- {} +
-# By default - run in foreground and log to STDERR (console)
-# can be changed by running container with: -e "BIND_LOG=-f"
-exec /usr/sbin/named -c /etc/bind/named.conf $BIND_LOG -u named $OPTIONS
+set -e
+
+# Helper function used to make all logging messages look similar.
+log() {
+    echo "$(date '+%d-%b-%Y %H:%M:%S.000') entrypoint: $1: $2"
+}
+log "info" "Starting Bind container"
+
+# Execute any potential shell scripts in the entrypoint.d/ folder.
+find "/entrypoint.d/" -follow -type f -print | sort -V | while read -r f; do
+    case "${f}" in
+        *.sh)
+            if [ -x "${f}" ]; then
+                log "info" "Launching ${f}";
+                "${f}"
+            else
+                log "info" "Ignoring ${f}, not executable";
+            fi
+            ;;
+        *)
+            log "info" "Ignoring ${f}";;
+    esac
+done
+
+# Verify that the configuration has no errors already here.
+# The reason for this is that we want to use the "-f" flag when launching Bind
+# so that it loads the logging configuration from a file, but then (annoyingly)
+# nothing will be printed in case of configuration errors.
+# Alternatively you can set BIND_LOG="-g" to force all output to stderr.
+named-checkconf /etc/bind/named.conf
+
+exec /usr/sbin/named -c /etc/bind/named.conf ${BIND_LOG="-f"} -u "${BIND_USER}" $@

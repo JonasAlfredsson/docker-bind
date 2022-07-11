@@ -1,0 +1,36 @@
+logging {
+
+    // Output really verbose logs to stderr (i.e. the console).
+    channel std_err {
+        stderr;
+
+        // The most verbose is "debug 3", but that becomes really spammy.
+        severity debug 1;
+
+        // You probably always want these.
+        print-time yes;
+        print-severity yes;
+        print-category yes;
+    };
+
+    // Write to a log file. But here we limit the severity level somewhat.
+    channel std_log {
+        // We write to a single file that may become 4 megabytes in size before
+        // it is rotated, and a single copy will be maintained as history.
+        file "/var/log/bind/default.log" versions 1 size 4m;
+
+        severity info;
+
+        print-time yes;
+        print-severity yes;
+        print-category yes;
+    };
+
+    // All categories which are not explicitly defined (or disabled by default)
+    // will be caught by the "default" category, and then sent to all the
+    // channels listed here.
+    category default {
+        std_err;
+        std_log;
+    };
+};

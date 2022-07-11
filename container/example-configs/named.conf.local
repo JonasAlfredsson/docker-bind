@@ -1,0 +1,17 @@
+// It is recommended to create a key and configure Bind to listen to commands
+// sent via rndc. However, it will function just fine without the following
+// four lines.
+include "/etc/bind/local-config/rndc.key";
+controls {
+    inet 127.0.0.1 allow { localhost; } keys { "rndc-key"; };
+};
+
+// Then configure some standard zones.
+include "/etc/bind/named.conf.default-zones";
+
+// If you intend to respond with IP addresses within the private ranges you
+// need to remove the following line, else Bind will return empty responses
+// for any IP inside the private ranges.
+include "/etc/bind/zones.rfc1918";
+
+// Below here you can then add your own zones or whatever you like.
