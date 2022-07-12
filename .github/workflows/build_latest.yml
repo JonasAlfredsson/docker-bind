@@ -1,0 +1,72 @@
+name: "build-latest"
+
+on:
+  push:
+    branches:
+      - "main"
+      - "master"
+    paths:
+      - "Dockerfile"
+      - ".github/workflows/**"
+  pull_request:
+    branches:
+      - "main"
+      - "master"
+    paths:
+      - "Dockerfile"
+
+jobs:
+  docker_buildx_all:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Perform setup steps
+        uses: JonasAlfredsson/checkout-qemu-buildx@v2
+        with:
+          should_login: ${{ github.event_name != 'pull_request' }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract version for Alpine build
+        id: alpine-tagger
+        run: bash .github/version_extractor.sh Alpine Dockerfile
+
+      - name: Build and push latest Alpine image
+        uses: docker/build-push-action@v3.0.0
+        with:
+          context: ./
+          file: ./Dockerfile
+          target: alpine-target
+          platforms: |
+            linux/amd64
+            linux/386
+            linux/arm64
+            linux/arm/v7
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            jonasal/bind:latest-alpine
+            jonasal/bind:${{ steps.alpine-tagger.outputs.APP_MAJOR }}-alpine
+            jonasal/bind:${{ steps.alpine-tagger.outputs.APP_MINOR }}-alpine
+            jonasal/bind:${{ steps.alpine-tagger.outputs.APP_PATCH }}-alpine
+
+      - name: Extract version for Debian build
+        id: debian-tagger
+        run: bash .github/version_extractor.sh Debian Dockerfile
+
+      - name: Build and push latest Debian image
+        uses: docker/build-push-action@v3.0.0
+        with:
+          context: ./
+          file: ./Dockerfile
+          target: debian-target
+          platforms: |
+            linux/amd64
+            linux/386
+            linux/arm64
+            linux/arm/v7
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            jonasal/bind:latest
+            jonasal/bind:${{ steps.debian-tagger.outputs.APP_MAJOR }}
+            jonasal/bind:${{ steps.debian-tagger.outputs.APP_MINOR }}
+            jonasal/bind:${{ steps.debian-tagger.outputs.APP_PATCH }}
