@@ -1,173 +1,164 @@
-### ISC BIND9 Container (Stable: 9.16.15_xx) built on top of Alpine
-### Last update: 5-20-21
-### Latest Stable Docker Tag: 9.16.15-r0
+# docker-bind
 
-NOTE: "Last Update" is the date of the latest DockerHub build.
+A Docker image of the ISC [Bind/Bind9/Named][2] DNS service that has been set
+up so it is easy to configure when running inside a container.
 
-This container is a super small (~5MB compressed pull, and only ~9MB
-when extracted) FULL version of ISC BIND9.
+There are both Debian and Alpine images available, and they install the server
+version available for their respective package manager which means they differ
+slightly on the minor version. Useful configuration files and folders from the
+Debian image are copied to the Alpine one for a consistent experience across
+both.
 
-It is ideal for an extremely secure and fast master (authoritative server),
-slave, recursive server/resolver, RPZ "dns firewall", or just
-about any other purpose you can use bind for.
+### Acknowledgments and Thanks
 
-To get started quickly, skip to step "D".
-
-# (A.) Security - always on the latest stable BIND release!
-This container will _always_ be up to date on the latest
-stable+patched version, usually within 24 hours of it being available
-in Alpine. In fact, most of the BIND vulnerabilities so far have been
-reported by me to the Alpine developers.
-
-# (B.) How to deploy a Bind (DNS) server?
-This container contains everything needed in terms of configuration to
-run as an authoritative server or a recursive resolver/forwarding cacher.
-
-However, the default config permits queries and recursion only from 127.0.0.1 - which will not be too useful :)
-But the assumption is that you will override ```/etc/bind``` with your configs, and ```/var/cache/bind``` with your zones.
-
-# (C.) Required "DATA" directory - for configs and zone data:
-This container assumes you have a "/DATA" folder with with your container specific data.
-(You can change that folder, sub-folders, and file points as needed, but make sure you update the "-v" mounts for the run.)
-
-Specifically, you need to have these directories/paths:
-```
-1.) [ *REQUIRED* ]
-In your "/DATA/etc/bind" directory, a file "named.conf", which acts as an entry point to your configs
-Take a look at the default config, and the example configs provided
-
-2.) [ *REQUIRED* ]
-A "/DATA/var/cache/bind" directory for all of the master or slave zones. If it's for slave zones, it will populate automatically and you can leave it blank.
-```
+This repository was originally a fork of [ventz/docker-bind][1], but what was
+supposed to be just a small pull request turned into a complete rewrite. While
+very little of the original code remains it would be dishonest to not keep the
+commit history since without it I would not have found inspiration to make my
+own version.
 
 
-# (D.) How to run a BIND ("named") Docker Container?
 
-## Default Example:
-This is just to test it out - by default only allows queries from
-itself (127.0.0.1) -- pretty useless for real world usage
-```
-docker run --name=dns-test
--it -d \
---dns=8.8.8.8 --dns=8.8.4.4 \
--p 53:53/udp -p 53:53 \
-ventz/bind
+# Usage
+
+The amount of options available for Bind is absolutely enormous, and what
+options to use will be very different depending on how you intend to run your
+instance so I will not even try to list suggestions here. But to just get you
+started we will set up a super simple forwarding server, so it becomes easier
+to understand what configuration files are needed and where they are expected
+to be found.
+
+
+## Available Environment Variables
+
+> :information_source: It is *possible* to change these environment variables,
+  but you will most likely break things.
+
+- `BIND_LOG`: Input argument for configuring stderr or file logging (default: `-f`)
+- `BIND_USER`: The username the service will run as (default: alpine=`named`, debian=`bind`)
+
+
+## Configuration Files
+
+When the container starts it will launch Bind which will read the main config
+file `/etc/bind/named.conf`, however, that one has only the following content:
+
+```conf
+include "/etc/bind/local-config/named.conf.logging";
+include "/etc/bind/local-config/named.conf.options";
+include "/etc/bind/local-config/named.conf.local";
 ```
 
-## Customer Override Example for Authoritative Master
-Edit: named.conf.local with your forward zone at least
-and create the file in /var/cache/bind/$yourdomain.tld
-```
-docker run --name=dns-master
--it -d \
---dns=8.8.8.8 --dns=8.8.4.4 \
--p 53:53/udp -p 53:53 \
--v /DATA/etc/bind:/etc/bind \
--v /DATA/var/cache/bind:/var/cache/bind \
-ventz/bind
-```
+What this means is that these three files are expected to be present when the
+container starts, and some basic (but fully functioning) examples are present
+inside the [`example-configs/`](./example-configs/) folder.
 
-## Custom Override Example for Recursive Resolver/Cacher:
-Edit: named.conf.options -> change the "allow-recursion" and  "allow-query" with your subnets
-```
-docker run --name=dns-resolver
--it -d \
---dns=8.8.8.8 --dns=8.8.4.4 \
--p 53:53/udp -p 53:53 \
--v /DATA/etc/bind:/etc/bind \
--v /DATA/var/cache/bind:/var/cache/bind \
-ventz/bind
+### Create `rndc.key`
+At the top of the [`named.conf.local`](./example-configs/named.conf.local) file
+we include a file which needs to be created manually by you as it should be
+unique and secret. You can have the file written to the `example-configs/`
+folder by running the following command:
+
+```bash
+docker run -it --rm \
+    -v $(pwd)/example-configs:/etc/bind/local-config \
+    --entrypoint=/bin/sh \
+    jonasal/bind:9 \
+    -c 'rndc-confgen -a -A hmac-sha256 -b 256 -u "${BIND_USER}" -c /etc/bind/local-config/rndc.key'
 ```
 
-Additional options may be passed to the bind daemon via the `OPTIONS` argument, provided as:
-`docker run --env OPTIONS='...'
+## Volumes
 
-# (E.) FAQs
+There are two locations that are important for this image, and the first one
+is `/etc/bind/local-config/` since that is the place where it expects to find
+your custom configuration files. It should be very difficult to miss as the
+image wont start without this folder properly populated.
 
-## How do I generate an RNDC Key?
-```
-docker run -it --rm --entrypoint "/usr/sbin/rndc-confgen" ventz/bind
-```
+The other important location is the working directory of the server that is
+defined at the top of the
+[`named.conf.options`](./example-configs/named.conf.options) file. This is the
+location where your primary zone files are expected to be found and to where
+slave zone files will be written, so for persistence I recommend to host mount
+this folder and make sure Bind is allowed to write to it:
 
-Take the portion that looks like this and save to "/etc/bind/rndc.key":
-```
-# Start of rndc.conf
-key "rndc-key" {
-    algorithm hmac-sha256;
-    # Note: the secret will be different, this is just an example
-    secret "zjVC59ehGxbbB6OhYhGaqUTIXu8Imcg3VKzvoMwIMzY=";
-};
+```bash
+mkdir zones && sudo chown root:101 zones && sudo chmod 775 zones
 ```
 
-## What configuration files do I need to get started?
+While you could change it to anything you want the examples below expects it to
+remain as it is now.
 
-I highly recommend reading more about bind if this is your question. Here are some useful resources:
+### Custom Entrypoint Scripts
+There is a third location that might be of interest and that is the folder
+`/entrypoint.d/` since the main [`entrypoint.sh`](./entrypoint.sh) will look
+inside this folder for any files ending with `.sh` and try to execute them in
+alphabetical order. This allows you to run custom commands before the Bind
+service is started.
 
-* https://www.bind9.net/manuals
+## Input Arguments
+
+Any extra input arguments provided as the `command`, when starting the image,
+will be appended directly to the Bind service. Please take a look at the last
+line in [`entrypoint.sh`](./entrypoint.sh) to see how it works.
+
+
+
+## Run
+
+After you have read through all the steps above we can finally start the
+image:
+
+
+```bash
+docker run -it --rm \
+    -p 54:53 -p 54:53/udp \
+    -v $(pwd)/example-configs:/etc/bind/local-config
+    -v $(pwd)/zones:/var/cache/bind
+    jonasal/bind:9 \
+    -4
+```
+
+Important to note here is that we forward port 54 on the host to the "correct"
+port 53 inside the container. I do this because some Linux distributions comes
+with the [`systemd-resolved`][3] service running which already use port 53.
+This is a problem if you want to run this image as a real DNS server, so you
+will have to [disable it][4] if it causes you trouble.
+
+Furthermore, at the very end of the command we include `-4`, and this tells
+Bind to not enable any IPv6 functionality. The reason for this is that by
+default no IPv6 traffic is handled by Docker and unnecessary error messages
+will be printed unless the flag is provided.
+
+### Verify
+
+In order to verify that Bind works, after running the command above, is to
+just make a quick query to your machine on port 54 and see if anything is
+printed in the container logs.
+
+```bash
+dig @127.0.0.1 -p 54 google.se
+```
+
+# Further reading
+
+As was mentioned in the beginning there exists a plethora of ways on how to
+configure Bind, so you will need to do some of your own research in order to
+function just as you want. However, here is a collection of links from where
+you can start your journey:
+
 * https://wiki.debian.org/Bind9
 * https://help.ubuntu.com/community/BIND9ServerHowto
 * https://www.zytrax.com/books/dns/ch7/
 * https://www.digitalocean.com/community/tutorials/how-to-configure-bind-as-a-private-network-dns-server-on-ubuntu-18-04
-
-That said, as a bare minimum (and depending on what you want - recursive, authoritative, etc), you need:
-
-[note: all of these are provided in `container/configs` folder]
-
-1.) Main config: `/etc/bind/named.conf`
-
-2.) Options: `/etc/bind/named.conf.options` (note: sane and secure defaults for recursive! If for authoritative, turn off recursive at least!)
-
-3.) Local zones: `/etc/bind/named.conf.local` (for your zone configs if authoritative/slave/etc)
-
-4.) Optional: `/etc/bind/named.conf.rfc1918` (for your RFC1918 "private IP" zone definitions - this is optional, and while recommended, you may comment out the last line in `named.conf.local` that utilizes it)
-
-5.) Optional: `/etc/bind/default-zones` (folder for rfc1918 definitions - not needed if `named.conf.rfc1918` is not used)
-
-## How do I log everything:
-
-1.) Add to your `named.conf`:
-```
-...
-include "/etc/bind/named.conf.logging";
-...
-```
-
-and
-
-2.) Create a file `named.conf.logging` with:
-```
-logging {
-    channel stdout {
-        stderr;
-        severity info;
-        print-category no;
-        print-severity no;
-        print-time yes;
-    };
-	# Customize categories as needed
-    # To log everything, keep at least "default"
-    category security { stdout; };
-    category queries  { stdout; };
-    category dnssec   { stdout; };
-    category xfer-in  { stdout; };
-    category xfer-out { stdout; };
-    category default  { stdout; };
-};
-
-For more information, see: https://www.slideshare.net/MenandMice/bind-9-logging-best-practices
-
-## How do I just change Bind STDERR to STDOUT logging?
-
-There is now a "BIND_LOG" ENV (environment) variable for logging
-
-Environment variables can both have a default and be customized at run time. 
-
-```
-"-g" = (default) Run the server in the foreground and force all logging stderr.
-"-f" = Run the server in the foreground
-```
-
-By default, the "-g" value is set, as that logs all to STDERR.
-You can now override it with "-f" by passing `-e "BIND_LOG=-f"` to `docker run`
+* https://kb.isc.org/docs/aa-01526
+* https://www.zytrax.com/books/dns/ch7/logging.html
 
 
+
+
+
+
+[1]: https://github.com/ventz/docker-bind
+[2]: https://www.isc.org/bind/
+[3]: https://www.freedesktop.org/software/systemd/man/systemd-resolved.service.html
+[4]: https://askubuntu.com/a/907249
