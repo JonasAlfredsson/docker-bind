@@ -25,6 +25,6 @@ if [ -z "${version}" ]; then
     exit 1
 fi
 
-echo "::set-output name=SEM_VER_MAJOR::$(echo ${version} | cut -d. -f 1)"
-echo "::set-output name=SEM_VER_MINOR::$(echo ${version} | cut -d. -f 1-2)"
-echo "::set-output name=SEM_VER_PATCH::$(echo ${version} | cut -d. -f 1-3)"
+echo "::set-output name=APP_MAJOR::$(echo ${version} | cut -d. -f 1)"
+echo "::set-output name=APP_MINOR::$(echo ${version} | cut -d. -f 1-2)"
+echo "::set-output name=APP_PATCH::$(echo ${version} | cut -d. -f 1-3)"

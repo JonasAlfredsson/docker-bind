@@ -8,6 +8,7 @@ on:
     paths:
       - "Dockerfile"
       - ".github/workflows/**"
+      - ".github/workflows/version_extractor.sh"
   pull_request:
     branches:
       - "main"
