@@ -1,4 +1,4 @@
-ARG app_version=0.1.0
+ARG app_version=0.1.1
 
 FROM debian:bullseye-slim AS source
 ARG DEBIAN_FRONTEND noninteractive
@@ -37,6 +37,8 @@ RUN apt-get update && apt-get install -y \
     && \
     apt-get autoremove -y && apt-get clean && \
     rm -rf /var/lib/apt/lists/* &&\
+# Create folder where some transient files will be stored by Bind.
+    install -m 0775 -o "root" -g "${BIND_USER}" -d "/run/named" && \
 # Create the logging folder which may be used when writing log files.
     install -m 0775 -o "${BIND_USER}" -g "${BIND_USER}" -d "/var/log/bind" && \
 # Finally a folder for custom entrypoint scripts.
