@@ -111,7 +111,7 @@ image:
 
 ```bash
 docker run -it --rm \
-    -p 54:53 -p 54:53/udp \
+    -p 54:53 -p 54:53/udp -p 953:953 \
     -v $(pwd)/example-configs:/etc/bind/local-config
     -v $(pwd)/zones:/var/cache/bind
     jonasal/bind:9 \
