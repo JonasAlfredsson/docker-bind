@@ -9,6 +9,8 @@ slightly on the minor version. Useful configuration files and folders from the
 Debian image are copied to the Alpine one for a consistent experience across
 both.
 
+> There is also an [Ansible role][5] using this image, if that is of interest.
+
 ### Acknowledgments and Thanks
 
 This repository was originally a fork of [ventz/docker-bind][1], but what was
@@ -162,3 +164,4 @@ you can start your journey:
 [2]: https://www.isc.org/bind/
 [3]: https://www.freedesktop.org/software/systemd/man/systemd-resolved.service.html
 [4]: https://askubuntu.com/a/907249
+[5]: https://github.com/JonasAlfredsson/ansible-role-bind_dns
