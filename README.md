@@ -133,7 +133,8 @@ will have to [disable it][4] if it causes you trouble.
 Furthermore, at the very end of the command we include `-4`, and this tells
 Bind to not enable any IPv6 functionality. The reason for this is that by
 default no IPv6 traffic is handled by Docker and unnecessary error messages
-will be printed unless the flag is provided.
+will be printed unless the flag is provided. Read more about this in the
+[Docker Network Mode](#docker-network-mode) section.
 
 ### Verify
 
@@ -144,6 +145,31 @@ printed in the container logs.
 ```bash
 dig @127.0.0.1 -p 54 google.se
 ```
+
+### Docker Network Mode
+
+As was previously mentioned Docker does not have [IPv6 enabled][6] by default,
+so it is recommended to start Bind with the `-4` flag to tell it to run in
+just IPv4 mode. But if you do want to run it for both IP versions I would
+suggest you first [read this][7] to get a better understanding of the quirks
+that currently exist, and I would actually suggest you just run this container
+on the `host` network to make your life easier.
+
+> Also, don't forget to change the `listen-on-v6` directive in the options
+> config file.
+
+```bash
+docker run -it --rm \
+    --network host \
+    -v $(pwd)/example-configs:/etc/bind/local-config \
+    -v $(pwd)/zones:/var/cache/bind \
+    jonasal/bind:9
+```
+
+You could probably do some [fiddling][9] with [macvlan][8] to achieve the same
+stuff, but I would not bother.
+
+
 
 # Further reading
 
@@ -169,3 +195,7 @@ you can start your journey:
 [3]: https://www.freedesktop.org/software/systemd/man/systemd-resolved.service.html
 [4]: https://askubuntu.com/a/907249
 [5]: https://github.com/JonasAlfredsson/ansible-role-bind_dns
+[6]: https://docs.docker.com/config/daemon/ipv6/
+[7]: https://github.com/robbertkl/docker-ipv6nat
+[8]: https://docs.docker.com/network/macvlan/
+[9]: https://gist.github.com/mikejoh/04978da4d52447ead7bdd045e878587d
