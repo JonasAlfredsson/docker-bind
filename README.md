@@ -55,6 +55,10 @@ What this means is that these three files are expected to be present when the
 container starts, and some basic (but fully functioning) examples are present
 inside the [`example-configs/`](./example-configs/) folder.
 
+> :warning: Logging in Bind is a little bit weird, so if anything in the config
+> is wrong it will not output any logs unless you set `BIND_LOG=-g`. Use this
+> for debugging and then switch back to default.
+
 ### Create `rndc.key`
 At the top of the [`named.conf.local`](./example-configs/named.conf.local) file
 we include a file which needs to be created manually by you as it should be
