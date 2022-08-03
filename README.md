@@ -52,7 +52,7 @@ include "/etc/bind/local-config/named.conf.local";
 ```
 
 What this means is that these three files are expected to be present when the
-container starts, and some basic (but fully functioning) examples are present
+container starts, and some basic (but fully functioning) examples are available
 inside the [`example-configs/`](./example-configs/) folder.
 
 > :warning: Logging in Bind is a little bit weird, so if anything in the config
@@ -61,9 +61,9 @@ inside the [`example-configs/`](./example-configs/) folder.
 
 ### Create `rndc.key`
 At the top of the [`named.conf.local`](./example-configs/named.conf.local) file
-we include a file which needs to be created manually by you as it should be
-unique and secret. You can have the file written to the `example-configs/`
-folder by running the following command:
+we include an "[rndc key][10]" which needs to be created manually by you as it
+should be unique and secret. You can have the file written to the
+`example-configs/` folder by running the following command:
 
 ```bash
 docker run -it --rm \
@@ -199,3 +199,4 @@ you can start your journey:
 [7]: https://github.com/robbertkl/docker-ipv6nat
 [8]: https://docs.docker.com/network/macvlan/
 [9]: https://gist.github.com/mikejoh/04978da4d52447ead7bdd045e878587d
+[10]: https://www.interserver.net/tips/kb/what-and-how-to-use-rndc/
