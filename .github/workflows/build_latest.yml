@@ -33,7 +33,7 @@ jobs:
         run: bash .github/version_extractor.sh Alpine Dockerfile
 
       - name: Build and push latest Alpine image
-        uses: docker/build-push-action@v3.0.0
+        uses: docker/build-push-action@v3.2.0
         with:
           context: ./
           file: ./Dockerfile
@@ -55,7 +55,7 @@ jobs:
         run: bash .github/version_extractor.sh Debian Dockerfile
 
       - name: Build and push latest Debian image
-        uses: docker/build-push-action@v3.0.0
+        uses: docker/build-push-action@v3.2.0
         with:
           context: ./
           file: ./Dockerfile
