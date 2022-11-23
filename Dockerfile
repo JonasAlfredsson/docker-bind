@@ -47,7 +47,7 @@ RUN apt-get update && apt-get install -y \
 
 
 # Create the final Alpine image.
-FROM alpine:3.16 AS alpine-target
+FROM alpine:3.17.0 AS alpine-target
 
 # In Alpine the service runs as the user "named" with uid 100 and gid 101.
 ENV BIND_USER=named \
