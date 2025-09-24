@@ -19,7 +19,7 @@ on:
       - copier.sh
 
 jobs:
-  docker_buildx_all:
+  docker_buildx_debian:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -50,3 +50,35 @@ jobs:
             jonasal/bind:${{ env.APP_MAJOR }}
             jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}
             jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}.${{ env.APP_PATCH }}
+
+  docker_buildx_alpine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Perform setup steps
+        uses: JonasAlfredsson/checkout-qemu-buildx@v2
+        with:
+          should_login: ${{ github.event_name != 'pull_request' }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract version
+        run: bash .github/version_extractor.sh Makefile >> $GITHUB_ENV
+
+      - name: Build and push latest Alpine image
+        uses: docker/build-push-action@v3.0.0
+        with:
+          context: ./
+          file: ./Dockerfile
+          target: final-alpine
+          platforms: |
+            linux/amd64
+            linux/386
+            linux/arm64
+            linux/arm/v7
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            jonasal/bind:latest-alpine
+            jonasal/bind:${{ env.APP_MAJOR }}-alpine
+            jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}-alpine
+            jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}.${{ env.APP_PATCH }}-alpine
