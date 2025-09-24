@@ -1,20 +1,22 @@
 name: "build-latest"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "main"
       - "master"
     paths:
       - "Dockerfile"
-      - ".github/workflows/**"
-      - ".github/workflows/version_extractor.sh"
+      - "root/**"
+      - copier.sh
   pull_request:
     branches:
       - "main"
       - "master"
     paths:
       - "Dockerfile"
+      - copier.sh
 
 jobs:
   docker_buildx_all:
@@ -28,38 +30,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract version for Alpine build
-        id: alpine-tagger
-        run: bash .github/version_extractor.sh Alpine Dockerfile
-
-      - name: Build and push latest Alpine image
-        uses: docker/build-push-action@v3.0.0
-        with:
-          context: ./
-          file: ./Dockerfile
-          target: alpine-target
-          platforms: |
-            linux/amd64
-            linux/386
-            linux/arm64
-            linux/arm/v7
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            jonasal/bind:latest-alpine
-            jonasal/bind:${{ steps.alpine-tagger.outputs.APP_MAJOR }}-alpine
-            jonasal/bind:${{ steps.alpine-tagger.outputs.APP_MINOR }}-alpine
-            jonasal/bind:${{ steps.alpine-tagger.outputs.APP_PATCH }}-alpine
-
-      - name: Extract version for Debian build
-        id: debian-tagger
-        run: bash .github/version_extractor.sh Debian Dockerfile
+      - name: Extract version
+        run: bash .github/version_extractor.sh Makefile >> $GITHUB_ENV
 
       - name: Build and push latest Debian image
         uses: docker/build-push-action@v3.0.0
         with:
           context: ./
           file: ./Dockerfile
-          target: debian-target
+          target: final
           platforms: |
             linux/amd64
             linux/386
@@ -68,6 +47,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             jonasal/bind:latest
-            jonasal/bind:${{ steps.debian-tagger.outputs.APP_MAJOR }}
-            jonasal/bind:${{ steps.debian-tagger.outputs.APP_MINOR }}
-            jonasal/bind:${{ steps.debian-tagger.outputs.APP_PATCH }}
+            jonasal/bind:${{ env.APP_MAJOR }}
+            jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}
+            jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}.${{ env.APP_PATCH }}

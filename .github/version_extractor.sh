@@ -3,28 +3,20 @@ set -eo pipefail
 
 ################################################################################
 #
-# This is a helper script which will try to extract the version of the Bind
-# service installed in the targeted image.
+# This script will try to extract the Bind version from the file targeted.
 #
-# $1: The taget image [Alpine|Debian]
-# $2: Target filepath
+# $1: The file to scan
 #
 ################################################################################
 
-if [ "${1}" == "Alpine" ]; then
-    version=$(sed -n -r -e 's/\s*BIND_VERSION=([1-9]+\.[0-9]+\.[0-9]+)-.*$/\1/p' "${2}")
-elif [ "${1}" == "Debian" ]; then
-    version=$(sed -n -r -e 's/\s*BIND_VERSION=1:([1-9]+\.[0-9]+\.[0-9]+)-.*$/\1/p' "${2}")
-else
-    echo "Unknown option '${1}'"
-    exit 1
-fi
+
+version=$(sed -n -r -e 's&^BIND_VERSION=([1-9]+\.[0-9]+\.[0-9]+)$&\1&p' "${1}")
 
 if [ -z "${version}" ]; then
-    echo "Could not extract Bind version from '${1}'"
+    echo "Could not extract version from '${1}'"
     exit 1
 fi
 
-echo "::set-output name=APP_MAJOR::$(echo ${version} | cut -d. -f 1)"
-echo "::set-output name=APP_MINOR::$(echo ${version} | cut -d. -f 1-2)"
-echo "::set-output name=APP_PATCH::$(echo ${version} | cut -d. -f 1-3)"
+echo "APP_MAJOR=$(echo ${version} | cut -d. -f 1)"
+echo "APP_MINOR=$(echo ${version} | cut -d. -f 2)"
+echo "APP_PATCH=$(echo ${version} | cut -d. -f 3)"
