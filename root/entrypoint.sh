@@ -25,8 +25,8 @@ done
 
 # Verify that the configuration has no errors already here.
 # The reason for this is that we want to use the "-f" flag when launching Bind
-# so that it loads the logging configuration from a file, but then (annoyingly)
-# nothing will be printed in case of configuration errors.
+# so that it loads the logging configuration from the config file, but then
+# (annoyingly) nothing will be printed in case of configuration errors.
 # Alternatively you can set BIND_LOG="-g" to force all output to stderr.
 named-checkconf /etc/bind/named.conf
 

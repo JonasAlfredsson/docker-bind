@@ -29,7 +29,4 @@ options {
         1.1.1.1;
         208.67.222.222;
     };
-
-    // Use the downloaded bind.keys file when validating signed zones.
-    dnssec-validation yes;
 };
