@@ -142,6 +142,10 @@ FROM base AS final
 # NOTE: Alpine uses "named" (100/101) instead.
 ENV BIND_USER=bind
 
+# We need to do some platfrom specific workarounds in the build script, so bring
+# this information in to the build environment.
+ARG TARGETPLATFORM
+
 RUN apt-get update && \
 # First we install some stuff needed during this initial configuration.
     apt-get install -y \
@@ -156,8 +160,8 @@ RUN apt-get update && \
 # Install all the runtime dependencies.
     apt-get install -y \
         openssl \
-        liburcu8 \
-        libuv1 \
+        $(if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then echo "liburcu8t64"; else echo "liburcu8"; fi) \
+        $(if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then echo "libuv1t64"; else echo "libuv1"; fi) \
         libcap2 \
         libnghttp2-14 \
         zlib1g \
