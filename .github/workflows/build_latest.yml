@@ -38,6 +38,8 @@ jobs:
         with:
           context: ./
           file: ./Dockerfile
+          build-args:
+            BIND_VERSION=${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}.${{ env.APP_PATCH }}
           target: final
           platforms: |
             linux/amd64
@@ -70,6 +72,8 @@ jobs:
         with:
           context: ./
           file: ./Dockerfile
+          build-args:
+            BIND_VERSION=${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}.${{ env.APP_PATCH }}
           target: final-alpine
           platforms: |
             linux/amd64
