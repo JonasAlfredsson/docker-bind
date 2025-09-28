@@ -180,6 +180,7 @@ RUN apt-get update && \
 # for the Bind process.
     install -m 0770 -o "${BIND_USER}" -g "${BIND_USER}" -d "/var/cache/bind" && \
     install -m 0775 -o "${BIND_USER}" -g "${BIND_USER}" -d "/var/log/bind" && \
+    install -m 0775 -o "${BIND_USER}" -g "${BIND_USER}" -d "/var/lib/bind" && \
     install -m 0775 -o "root" -g "${BIND_USER}" -d "/run/named" && \
     install -m 0775 -o "root" -g "${BIND_USER}" -d "/etc/bind/local-config" && \
     mkdir /entrypoint.d \
@@ -205,8 +206,8 @@ COPY ./root/ /
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD []
 
-# Bind uses both TCP and UDP on port 53.
-EXPOSE 53 53/udp
+# Bind uses both TCP and UDP on port 53. Port 953 is used for rndc communication.
+EXPOSE 53 53/udp 953
 
 
 ################################################################################
@@ -323,6 +324,7 @@ RUN set -e && \
 # for the Bind process.
     install -m 0770 -o "${BIND_USER}" -g "${BIND_USER}" -d "/var/cache/bind" && \
     install -m 0775 -o "${BIND_USER}" -g "${BIND_USER}" -d "/var/log/bind" && \
+    install -m 0775 -o "${BIND_USER}" -g "${BIND_USER}" -d "/var/lib/bind" && \
     install -m 0775 -o "root" -g "${BIND_USER}" -d "/run/named" && \
     install -m 0775 -o "root" -g "${BIND_USER}" -d "/etc/bind/local-config" && \
     mkdir /entrypoint.d
@@ -338,5 +340,5 @@ COPY ./root/ /
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD []
 
-# Bind uses both TCP and UDP on port 53.
-EXPOSE 53 53/udp
+# Bind uses both TCP and UDP on port 53. Port 953 is used for rndc communication.
+EXPOSE 53 53/udp 953
