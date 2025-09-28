@@ -107,18 +107,19 @@ remove the "file" configuration section, and just let it output to stdout.
 ### 4. Your Zone Files
 ISC claims that `/var/lib/bind` is "usually the place where the secondary zones
 are placed", but for my personal use I just place everything inside the
-[cache](#2-the-cache) directory. IT is up to you, since you will need to define
-the paths in the "zone" declarations inside the `named.conf.options` file.
+[cache](#2-the-cache) directory. It is up to you, since you will either way
+need to define the paths in the "zone" declarations inside the
+`named.conf.options` file.
 
 
-### The `entrypoint` Scripts
+### 5. The `entrypoint` Scripts
 The final location that might be of interest is the `/entrypoint.d/` folder,
 since the main [`entrypoint.sh`](./entrypoint.sh) will look inside it for any
 files ending with `.sh` and try to execute them in alphabetical order. This
 allows you to run custom commands before the Bind service is started.
 
 #### Input Arguments
-Any extra input arguments provided as the `command`, when starting the image,
+Any extra input arguments provided as the `CMD`, when starting the image,
 will be appended directly to the Bind service. Please take a look at the last
 line in [`entrypoint.sh`](./entrypoint.sh) to see how it works.
 
