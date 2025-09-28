@@ -3,13 +3,15 @@
 A Docker image of the ISC [Bind/Bind9/Named][2] DNS service that has been set
 up so it is easy to configure when running inside a container.
 
-There are both Debian and Alpine images available, and they install the server
-version available for their respective package manager which means they differ
-slightly on the minor version. Useful configuration files and folders from the
-Debian image are copied to the Alpine one for a consistent experience across
-both.
+The program is [built][11] directly from source, in order to get the latest
+version, and here are both Debian and Alpine images available. Useful
+configuration [files and folders](./root/etc/bind/) (similar to what is found in
+the Debian packages) are included to make it simpler to set up a DNS server.
 
 > There is also an [Ansible role][5] using this image, if that is of interest.
+
+> :information: This is still a bit of work in progress, so if something isn't
+> working for you I am very interested in being notified about it.
 
 ### Acknowledgments and Thanks
 
@@ -200,3 +202,4 @@ you can start your journey:
 [8]: https://docs.docker.com/network/macvlan/
 [9]: https://gist.github.com/mikejoh/04978da4d52447ead7bdd045e878587d
 [10]: https://www.interserver.net/tips/kb/what-and-how-to-use-rndc/
+[11]: https://bind9.readthedocs.io/en/latest/chapter10.html
