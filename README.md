@@ -13,6 +13,29 @@ the Debian packages) are included to make it simpler to set up a DNS server.
 > :information_source: This is still a bit of work in progress, so if something
 > isn't working for you I am very interested in being notified about it.
 
+--------------------------------------------------------------------------------
+
+The Docker images are tagged with the [version][15] of Bind that is found
+inside, like this:
+
+- [jonasal/bind:<version>](https://hub.docker.com/r/jonasal/bind/tags)
+
+> Just append `-alpine` to the tag to get the Alpine image.
+
+It is possible to define how strict you want to lock down the version so `9`,
+`9.20` or `9.20.11` all work and the less specific tags will move to point to
+the latest of the more specific ones.
+
+One thing [to be aware of][14] is that **even** minor versions (`9.20`) are
+stable builds while **odd** (`9.21`) are development builds, therefore the major
+tagging of all the images built here will only track the stable releases. What
+this means is that `9 -> 9.20.0` even though `9.21.1` is available.
+
+> :warning: The `:latest` tag will always point to the latest development build,
+> so [**be careful**][16] if you are using this tag since updates may break
+> things.
+
+
 ### Acknowledgments and Thanks
 
 This repository was originally a fork of [ventz/docker-bind][1], but what was
@@ -44,7 +67,7 @@ Full Bind documentation found here: https://bind9.readthedocs.io/en/stable/
 > :information_source: It is *possible* to change these environment variables,
   but you will most likely break things.
 
-- `BIND_LOG`: Input argument for configuring stderr or file logging (default: `-f`)
+- `BIND_LOG`: Input argument for configuring stderr (`-g`) or file logging (default: `-f`)
 - `BIND_USER`: The username the service will run as (default: alpine=`named`, debian=`bind`)
 
 
@@ -235,3 +258,6 @@ you can start your journey:
 [11]: https://bind9.readthedocs.io/en/latest/chapter10.html
 [12]: https://hub.docker.com/r/internetsystemsconsortium/bind9/tags
 [13]: https://gitlab.isc.org/isc-projects/bind9-docker/-/tree/v9.21?ref_type=heads
+[14]: https://kb.isc.org/docs/aa-01540
+[15]: https://kb.isc.org/docs/aa-01310
+[16]: https://vsupalov.com/docker-latest-tag/

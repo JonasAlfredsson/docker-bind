@@ -53,8 +53,7 @@ jobs:
             linux/arm/v7
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            jonasal/bind:latest
-            jonasal/bind:${{ env.APP_MAJOR }}
+            jonasal/bind:${{ env.RELEASE_TAG }}
             jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}
             jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}.${{ env.APP_PATCH }}
 
@@ -87,7 +86,6 @@ jobs:
             linux/arm/v7
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            jonasal/bind:latest-alpine
-            jonasal/bind:${{ env.APP_MAJOR }}-alpine
+            jonasal/bind:${{ env.RELEASE_TAG }}-alpine
             jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}-alpine
             jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}.${{ env.APP_PATCH }}-alpine

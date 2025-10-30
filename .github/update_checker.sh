@@ -3,26 +3,19 @@ set -euo pipefail
 
 ################################################################################
 #
-# This script will query the repository where the Bind source files are located
-# and try to parse and find the latest version.
-# If any changes are found the Makefile will be updated.
+# This script will query the FTP repository where the Bind source files are
+# located and try to parse and find the latest stable and development versions.
+# If any changes are found both this script and the Makefile will be updated.
 #
 ################################################################################
 
-# Prepare some paths we are going to use.
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-SCRIPT_PATH="${SCRIPT_DIR}/$(basename ${BASH_SOURCE[0]})"
-MAKEFILE_PATH="${SCRIPT_DIR}/../Makefile"
-
-# Use the version_extractor.sh script to obtain the current version.
-while read v; do
-    export "${v}"
-done < <("${SCRIPT_DIR}/version_extractor.sh" "${MAKEFILE_PATH}")
-echo "Current version is ${APP_MAJOR}.${APP_MINOR}.${APP_PATCH}" >&2
-
+# Here we keep track of the latest stable and dev versions we built.
+latestStable=("9" "20" "14")
+stableChanged="false"
+latestDev=("9" "21" "14")
+devChanged="false"
 
 # Query the download page and iterate over each line of the content returned.
-newVersion="false"
 while read p; do
     # Try to find something that looks like a version number.
     # We do not include any "rc1" or similar releases, only a "1.23.45" number
@@ -39,33 +32,60 @@ while read p; do
     patch=$(echo ${version} | cut -d. -f 3)
     echo "Comparing with ${major}.${minor}.${patch}" >&2
 
-    # Compare the release found on the page with what we have right now.
-    if [ "${major}" -gt "${APP_MAJOR}" ]; then
-        APP_MAJOR="${major}"
-        APP_MINOR="${minor}"
-        APP_PATCH="${patch}"
-        newVersion="true"
-    elif [ "${major}" -eq "${APP_MAJOR}" ]; then
-        if [ "${minor}" -gt "${APP_MINOR}" ]; then
-            APP_MINOR="${minor}"
-            APP_PATCH="${patch}"
-            newVersion="true"
-        elif [ "${minor}" -eq "${APP_MINOR}" ]; then
-            if [ "${patch}" -gt "${APP_PATCH}" ]; then
-                APP_PATCH="${patch}"
-                newVersion="true"
+    # Compare the found version with what we currently have stored.
+    if [ $(( ${minor}%2 )) -eq 0 ]; then
+        # Check the stable version.
+        if [ "${major}" -gt "${latestStable[0]}" ]; then
+            latestStable=("${major}" "${minor}" "${patch}")
+            stableChanged="true"
+        elif [ "${major}" -eq "${latestStable[0]}" ]; then
+            if [ "${minor}" -gt "${latestStable[1]}" ]; then
+                latestStable[1]="${minor}"
+                latestStable[2]="${patch}"
+                stableChanged="true"
+            elif [ "${minor}" -eq "${latestStable[1]}" ]; then
+                if [ "${patch}" -gt "${latestStable[2]}" ]; then
+                    latestStable[2]="${patch}"
+                    stableChanged="true"
+                fi
+            fi
+        fi
+    else
+        # Check the development version.
+        if [ "${major}" -gt "${latestDev[0]}" ]; then
+            latestDev=("${major}" "${minor}" "${patch}")
+            devChanged="true"
+        elif [ "${major}" -eq "${latestDev[0]}" ]; then
+            if [ "${minor}" -gt "${latestDev[1]}" ]; then
+                latestDev[1]="${minor}"
+                latestDev[2]="${patch}"
+                devChanged="true"
+            elif [ "${minor}" -eq "${latestDev[1]}" ]; then
+                if [ "${patch}" -gt "${latestDev[2]}" ]; then
+                    latestDev[2]="${patch}"
+                    devChanged="true"
+                fi
             fi
         fi
     fi
 done < <(curl -sSLf https://downloads.isc.org/isc/bind9)
 
 
+# Prepare some paths we are going to use.
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_PATH="${SCRIPT_DIR}/$(basename ${BASH_SOURCE[0]})"
+MAKEFILE_PATH="${SCRIPT_DIR}/../Makefile"
 
-# If there is a new version available we update the relevant files with this
-# information.
-if [ "${newVersion}" == "true" ]; then
-    sed -i -E "s/^BIND_VERSION=\".*?\"$/BIND_VERSION=\"${APP_MAJOR}\.${APP_MINOR}\.${APP_PATCH}\"/g" "${MAKEFILE_PATH}"
-    echo COMMIT_MESSAGE="Bind version ${APP_MAJOR}.${APP_MINOR}.${APP_PATCH}"
+# Replace the version numbers in the relevant files, but only do one at a time
+# where a new stable release has priority.
+if [ "${stableChanged}" == "true" ]; then
+    sed -i -E "s/^BIND_VERSION=\".*?\"$/BIND_VERSION=\"${latestStable[0]}\.${latestStable[1]}\.${latestStable[2]}\"/g" "${MAKEFILE_PATH}"
+    sed -i -E "s/^latestStable=(.*?)$/latestStable=(\"${latestStable[0]}\" \"${latestStable[1]}\" \"${latestStable[2]}\")/g" "${SCRIPT_PATH}"
+    echo COMMIT_MESSAGE="Bind version ${latestStable[0]}.${latestStable[1]}.${latestStable[2]} (stable)"
+elif [ "${devChanged}" == "true" ]; then
+    sed -i -E "s/^BIND_VERSION=\".*?\"$/BIND_VERSION=\"${latestDev[0]}\.${latestDev[1]}\.${latestDev[2]}\"/g" "${MAKEFILE_PATH}"
+    sed -i -E "s/^latestDev=(.*?)$/latestDev=(\"${latestDev[0]}\" \"${latestDev[1]}\" \"${latestDev[2]}\")/g" "${SCRIPT_PATH}"
+    echo COMMIT_MESSAGE="Bind version ${latestDev[0]}.${latestDev[1]}.${latestDev[2]} (development)"
 else
     echo "No changes detected" >&2
 fi
