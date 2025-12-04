@@ -4,7 +4,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 LABEL maintainer="Jonas Alfredsson <jonas.alfredsson@protonmail.com>"
 
 # Have a common base for the entire Alpine build branch.
-FROM alpine:3.22 AS base-alpine
+FROM alpine:3.23 AS base-alpine
 LABEL maintainer="Jonas Alfredsson <jonas.alfredsson@protonmail.com>"
 RUN apk add --no-cache \
         ca-certificates
