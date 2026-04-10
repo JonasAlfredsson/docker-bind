@@ -39,7 +39,7 @@ jobs:
         run: bash .github/version_extractor.sh Makefile >> $GITHUB_ENV
 
       - name: Build and push latest Debian image
-        uses: docker/build-push-action@v7.0.0
+        uses: docker/build-push-action@v7.1.0
         with:
           context: ./
           file: ./Dockerfile
@@ -73,7 +73,7 @@ jobs:
         run: bash .github/version_extractor.sh Makefile >> $GITHUB_ENV
 
       - name: Build and push latest Alpine image
-        uses: docker/build-push-action@v7.0.0
+        uses: docker/build-push-action@v7.1.0
         with:
           context: ./
           file: ./Dockerfile
