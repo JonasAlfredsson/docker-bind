@@ -1,5 +1,5 @@
 # Have a common base for the entire Debian build branch.
-FROM debian:13.5-slim AS base
+FROM debian:13.6-slim AS base
 ARG DEBIAN_FRONTEND=noninteractive
 LABEL maintainer="Jonas Alfredsson <jonas.alfredsson@protonmail.com>"
 
