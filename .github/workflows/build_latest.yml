@@ -24,7 +24,32 @@ on:
       - isc-keyblock.asc
 
 jobs:
+  verify_meson_options:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Perform setup steps
+        uses: JonasAlfredsson/checkout-qemu-buildx@v2
+
+      - name: Extract version
+        run: bash .github/version_extractor.sh Makefile >> $GITHUB_ENV
+
+      - name: Build downloader image
+        uses: docker/build-push-action@v7.3.0
+        with:
+          context: ./
+          file: ./Dockerfile
+          build-args:
+            BIND_VERSION=${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}.${{ env.APP_PATCH }}
+          target: downloader
+          load: true
+          tags: bind:downloader
+
+      - name: Check for changes in meson_options.txt
+        run: docker run --rm bind:downloader cat /source/meson_options.txt | diff --unified .github/current_meson_options.txt -
+
   docker_buildx_debian:
+    needs: verify_meson_options
     runs-on: ubuntu-latest
     timeout-minutes: 100
     steps:
@@ -59,6 +84,7 @@ jobs:
             jonasal/bind:${{ env.APP_MAJOR }}.${{ env.APP_MINOR }}.${{ env.APP_PATCH }}
 
   docker_buildx_alpine:
+    needs: verify_meson_options
     runs-on: ubuntu-latest
     timeout-minutes: 100
     steps:
