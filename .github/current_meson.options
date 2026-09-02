@@ -199,7 +199,7 @@ option(
 option(
     'named-lto',
     type: 'combo',
-    choices: ['off', 'thin', 'full'],
-    value: 'thin',
+    choices: ['disabled', 'auto', 'thin', 'full'],
+    value: 'auto',
     description: 'Enable Link Time Optimization for named.',
 )
