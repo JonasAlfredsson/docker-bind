@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Perform setup steps
         uses: JonasAlfredsson/checkout-qemu-buildx@v2
+        with:
+          should_login: false
 
       - name: Extract version
         run: bash .github/version_extractor.sh Makefile >> $GITHUB_ENV
