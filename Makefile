@@ -28,6 +28,10 @@ build-downloader:
 get-meson-options: build-downloader
 	docker run --rm bind:downloader cat /source/meson.options > .github/current_meson.options
 
+.PHONY: get-root-hints
+get-root-hints: build-downloader
+	docker run --rm bind:downloader curl -sSLf --retry 3 --retry-delay 2 "https://www.internic.net/domain/named.cache" | sed 's/[[:space:]]*$$//' > root/etc/bind/root.hints
+
 .PHONY: run
 run:
 	if [ ! -d "$(PWD)/cache" ]; then sudo install -m 0777 -o root -g 101 -d $(PWD)/cache; fi

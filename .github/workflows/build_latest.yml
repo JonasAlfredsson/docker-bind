@@ -50,6 +50,9 @@ jobs:
       - name: Check for changes in meson.options
         run: docker run --rm bind:downloader cat /source/meson.options | diff --unified .github/current_meson.options -
 
+      - name: Check for changes in root.hints
+        run: docker run --rm bind:downloader curl -sSLf --retry 3 --retry-delay 2 "https://www.internic.net/domain/named.cache" | sed 's/[[:space:]]*$$//' | diff --unified root/etc/bind/root.hints -
+
   docker_buildx_debian:
     needs: verify_meson_options
     runs-on: ubuntu-latest
