@@ -69,28 +69,28 @@ FROM build-base AS builder
 RUN apt-get install -y \
 # These initial packages are more related to extracting and compiling the code.
         build-essential \
+        netcat-openbsd \
         perl \
         pkg-config \
         protobuf-c-compiler \
-        netcat-openbsd \
 # Below here are all the libraries needed by Bind for all features.
+        libcap-dev \
+        libcmocka-dev \
+        libedit-dev \
+        libfstrm-dev \
+        libidn2-dev \
+        libjemalloc-dev \
+        libjson-c-dev \
+        libkrb5-dev \
+        liblmdb-dev \
+        libmaxminddb-dev \
+        libnghttp2-dev \
+        libprotobuf-c-dev \
         libssl-dev=3* \
         liburcu-dev \
         libuv1-dev \
-        libcap-dev \
-        libnghttp2-dev \
         libxml2-dev \
-        zlib1g-dev \
-        liblmdb-dev \
-        libmaxminddb-dev \
-        libprotobuf-c-dev \
-        libidn2-dev \
-        libedit-dev \
-        libkrb5-dev \
-        libfstrm-dev \
-        libjson-c-dev \
-        libcmocka-dev \
-        libjemalloc-dev
+        zlib1g-dev
 
 # Needed in order to install Python packages via PIP after PEP 668 was
 # introduced, but I believe this is safe since we are in a container without
@@ -149,8 +149,8 @@ ARG TARGETPLATFORM
 RUN apt-get update && \
 # First we install some stuff needed during this initial configuration.
     apt-get install -y \
-        apt-transport-https \
         adduser \
+        apt-transport-https \
     && \
 # Create the group and user for our Bind process.
     addgroup --system --gid 101 ${BIND_USER} && \
@@ -159,22 +159,22 @@ RUN apt-get update && \
     && \
 # Install all the runtime dependencies.
     apt-get install -y \
-        openssl \
-        $(if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then echo "liburcu8t64"; else echo "liburcu8"; fi) \
-        $(if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then echo "libuv1t64"; else echo "libuv1"; fi) \
         libcap2 \
-        libnghttp2-14 \
-        zlib1g \
+        libedit2 \
+        libfstrm0 \
+        libgssapi-krb5-2 \
+        libidn2-0 \
+        libjemalloc2 \
+        libjson-c5 \
+        libkrb5-3 \
         liblmdb0 \
         libmaxminddb0 \
+        libnghttp2-14 \
         libprotobuf-c1 \
-        libidn2-0 \
-        libedit2 \
-        libkrb5-3 \
-        libgssapi-krb5-2 \
-        libfstrm0 \
-        libjson-c5 \
-        libjemalloc2 \
+        $(if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then echo "liburcu8t64"; else echo "liburcu8"; fi) \
+        $(if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then echo "libuv1t64"; else echo "libuv1"; fi) \
+        openssl \
+        zlib1g \
     && \
 # After this we create a couple of folders that should exist and be writable
 # for the Bind process.
@@ -220,31 +220,31 @@ EXPOSE 53 53/udp 953
 FROM base-alpine AS builder-alpine
 RUN set -e && apk add --no-cache \
 # These initial packages are more related to extracting and compiling the code.
+        curl \
         g++ \
         make \
+        netcat-openbsd \
         perl \
-        curl \
         pkgconfig \
         protobuf-c-compiler \
-        netcat-openbsd \
 # Below here are all the libraries needed by Bind for all features.
-        openssl-dev \
-        userspace-rcu-dev \
-        libuv-dev \
-        libcap-dev \
-        nghttp2-dev \
-        libxml2-dev \
-        zlib-dev \
-        lmdb-dev \
-        libmaxminddb-dev \
-        protobuf-c-dev \
-        libidn2-dev \
-        libedit-dev \
-        krb5-dev \
-        fstrm-dev \
-        json-c-dev \
         cmocka-dev \
-        jemalloc-dev
+        fstrm-dev \
+        jemalloc-dev \
+        json-c-dev \
+        krb5-dev \
+        libcap-dev \
+        libedit-dev \
+        libidn2-dev \
+        libmaxminddb-dev \
+        libuv-dev \
+        libxml2-dev \
+        lmdb-dev \
+        nghttp2-dev \
+        openssl-dev \
+        protobuf-c-dev \
+        userspace-rcu-dev \
+        zlib-dev
 
 # Needed in order to install Python packages via PIP after PEP 668 was
 # introduced, but I believe this is safe since we are in a container without
@@ -304,21 +304,21 @@ RUN set -e && \
     && \
 # Install all the runtime dependencies.
     set -e && apk add --no-cache \
-        libssl3 \
-        userspace-rcu \
-        libuv \
-        libcap \
-        nghttp2 \
-        zlib \
-        lmdb \
-        libmaxminddb \
-        protobuf-c \
-        libidn2 \
-        libedit \
-        krb5 \
         fstrm \
-        json-c \
         jemalloc \
+        json-c \
+        krb5 \
+        libcap \
+        libedit \
+        libidn2 \
+        libmaxminddb \
+        libssl3 \
+        libuv \
+        lmdb \
+        nghttp2 \
+        protobuf-c \
+        userspace-rcu \
+        zlib \
     && \
 # After this we create a couple of folders that should exist and be writable
 # for the Bind process.
