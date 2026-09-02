@@ -20,7 +20,6 @@ meson setup "${1}" \
     -D gssapi=enabled \
     -D idn=enabled \
     -D line=enabled \
-    -D lmdb=enabled \
     -D stats-json=enabled \
     -D stats-xml=disabled \
     -D zlib=enabled \

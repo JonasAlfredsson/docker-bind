@@ -67,13 +67,6 @@ option(
 )
 
 option(
-    'lmdb',
-    type: 'feature',
-    value: 'auto',
-    description: 'LMDB database to store configuration for "addzone" zones',
-)
-
-option(
     'stats-json',
     type: 'feature',
     value: 'auto',
