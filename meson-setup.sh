@@ -13,7 +13,6 @@ meson setup "${1}" \
     --sysconfdir=/etc/bind \
     --localstatedir=/var \
     -D doc=disabled \
-    -D cap=enabled \
     -D dnstap=enabled \
     -D doh=enabled \
     -D fips=enabled \

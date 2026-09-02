@@ -47,8 +47,8 @@ jobs:
           load: true
           tags: bind:downloader
 
-      - name: Check for changes in meson_options.txt
-        run: docker run --rm bind:downloader cat /source/meson_options.txt | diff --unified .github/current_meson_options.txt -
+      - name: Check for changes in meson.options
+        run: docker run --rm bind:downloader cat /source/meson.options | diff --unified .github/current_meson.options -
 
   docker_buildx_debian:
     needs: verify_meson_options

@@ -18,13 +18,6 @@ option(
 )
 
 option(
-    'cap',
-    type: 'feature',
-    value: 'auto',
-    description: 'Enable libcap-based capability support',
-)
-
-option(
     'dnstap',
     type: 'feature',
     value: 'auto',
@@ -180,6 +173,12 @@ option(
     choices: ['none', 'afl', 'libfuzzer', 'oss-fuzz'],
     value: 'none',
     description: 'Fuzzing backend (backend none with -Dfuzzing=enabled only compiles the binary)',
+)
+
+option(
+    'oss-fuzz-args',
+    type: 'string',
+    description: 'Fuzzing linking arguments for OSS-Fuzz',
 )
 
 option(

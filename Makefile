@@ -1,4 +1,4 @@
-BIND_VERSION="9.21.14"
+BIND_VERSION="9.21.15"
 
 .PHONY: build
 build:
@@ -15,6 +15,18 @@ build-alpine:
 		--target final-alpine \
 		-t "bind:local" \
 		.
+
+.PHONY: build-downloader
+build-downloader:
+	docker build -f Dockerfile --progress=plain \
+		--build-arg BIND_VERSION=$(BIND_VERSION) \
+		--target downloader \
+		-t "bind:downloader" \
+		.
+
+.PHONY: get-meson-options
+get-meson-options: build-downloader
+	docker run --rm bind:downloader cat /source/meson.options > .github/current_meson.options
 
 .PHONY: run
 run:
