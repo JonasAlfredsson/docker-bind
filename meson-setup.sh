@@ -33,4 +33,7 @@ meson setup "${1}" \
     -D tracing=disabled \
     -D auto-validation=enabled \
     -D developer=disabled \
-    -D leak-detection=disabled
+    -D cmocka=disabled \
+    -D fuzzing=disabled \
+    -D leak-detection=disabled \
+    -D named-lto=thin
