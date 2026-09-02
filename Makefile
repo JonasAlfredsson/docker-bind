@@ -18,11 +18,19 @@ build-alpine:
 
 .PHONY: run
 run:
-	if [ ! -d "$(PWD)/cache" ]; then sudo install -m 0776 -o root -g 101 -d $(PWD)/cache; fi
+	if [ ! -d "$(PWD)/cache" ]; then sudo install -m 0777 -o root -g 101 -d $(PWD)/cache; fi
 	docker run -it --rm \
 		-v $(PWD)/example-configs:/etc/bind/local-config:ro \
 		-v $(PWD)/cache:/var/cache/bind \
 		bind:local
+
+.PHONY: rndc-key
+rndc-key:
+	docker run -it --rm \
+		-v $(PWD)/example-configs:/etc/bind/local-config \
+		--entrypoint=/bin/sh \
+		bind:local \
+		-c 'rndc-confgen -a -A hmac-sha256 -b 256 -u "$${BIND_USER}" -c /etc/bind/local-config/rndc.key'
 
 dev:
 	docker buildx build --platform linux/amd64,linux/386,linux/arm64,linux/arm/v7 \
