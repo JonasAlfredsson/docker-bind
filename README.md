@@ -77,9 +77,13 @@ mounted in the [Run section](#run)).
 > is wrong it will not output any logs unless you set `BIND_LOG=-g`. Use this
 > for debugging and then switch back to default.
 
-By having all the user defined files inside this folder, it is possible for
-this image to include updated version of the ["default" config](./root/etc/bind/)
-files without the users having to update their paths.
+By having all the user defined files inside this `local-config/` sub-folder it
+is possible for this image to include up to date versions of the
+["default" config](./root/etc/bind/) files in the parent folder without the
+users having to update their paths.
+
+Please also look at the [`rndc` section](#create-rndckey) for a simple way
+to create the `rndc` key needed for communicating with Bind.
 
 ### 2. The Cache
 The other important location is the "working directory" (or cache) of the server
@@ -87,13 +91,12 @@ that is defined at the top of the
 [`named.conf.options`](./example-configs/named.conf.options) file. This is the
 location where slave zone files will be written, or other stuff that needs to be
 cached, so for persistence I recommend to host mount this folder and make sure
-Bind is allowed to write to it (`root:101 - 0775`).
+Bind is allowed to write to it (`root:101` and `0775`).
 
-ISC uses `/var/cache/bind` for this, so that is what we default to in this image
-as well.
-
-Please also look at the [`rndc` section](#create-rndckey) for a simple way
-to create the `rndc` key needed for communicating with Bind.
+This is also the directory from which any relative file paths, defined in your
+configs, will be based on. The Debian package uses `/var/cache/bind` for this,
+so that is what we default to in this image as well, but there is nothing
+stopping you from changing this to whatever you want.
 
 ### 3. The Logs
 If you choose to output logs to a file, like in the
@@ -102,26 +105,45 @@ directory is a good location to use inside the container. Host mount it in order
 to be able to read the logs outside the container.
 
 If you are fine with just letting Docker capture and manage the logs you can
-remove the "file" configuration section, and just let it output to stdout.
+remove the "file" configuration section, and just let it output to
+stdout/stderr.
 
 ### 4. Your Zone Files
-ISC claims that `/var/lib/bind` is "usually the place where the secondary zones
-are placed", but for my personal use I just place everything inside the
-[cache](#2-the-cache) directory. It is up to you, since you will either way
-need to define the paths in the "zone" declarations inside the
-`named.conf.options` file.
+The Debian installation package claims that `/var/lib/bind` is usually the
+place where your managed zone files are placed, but personally I just
+place everything inside the [cache](#2-the-cache) directory in order to use
+relative paths everywhere.
 
+This approach aligns with ISC examples which usually defines the `directory`
+option and use a folder structure like this (basically `/var/cache/bind` changed
+to `/var/named`) to separate the different use cases:
+
+```text
+/var/named/
+├── master/       manually maintained primary zone files
+├── slave/        downloaded secondary-zone copies
+├── dynamic/      dynamically updated zones and .jnl files
+├── data/         managed keys, NZD state, dumps, etc.
+├── keys/         DNSSEC private keys
+└── run/          PID/control sockets, when needed
+```
+
+However, it is up to you how you like to organize it, since you have full
+control on whether you use absolute or relative paths for your "zone"
+declarations. You can keep `directory /var/cache/bind`, so all volatile
+data is written there, and then provide absolute paths to your master zones
+somewhere inside `/var/lib/bind/`.
 
 ### 5. The `entrypoint` Scripts
 The final location that might be of interest is the `/entrypoint.d/` folder,
-since the main [`entrypoint.sh`](./entrypoint.sh) will look inside it for any
-files ending with `.sh` and try to execute them in alphabetical order. This
+since the main [`entrypoint.sh`](./root/entrypoint.sh) will look inside it for
+any files ending with `.sh` and try to execute them in alphabetical order. This
 allows you to run custom commands before the Bind service is started.
 
 #### Input Arguments
 Any extra input arguments provided as the `CMD`, when starting the image,
 will be appended directly to the Bind service. Please take a look at the last
-line in [`entrypoint.sh`](./entrypoint.sh) to see how it works.
+line in [`entrypoint.sh`](./root/entrypoint.sh) to see how it works.
 
 
 
@@ -209,13 +231,13 @@ configure Bind, so you will need to do some of your own research in order to
 function just as you want. However, here is a collection of links from where
 you can start your journey:
 
+* https://bind9.readthedocs.io/en/stable/
 * https://wiki.debian.org/Bind9
 * https://help.ubuntu.com/community/BIND9ServerHowto
 * https://www.zytrax.com/books/dns/ch7/
 * https://www.digitalocean.com/community/tutorials/how-to-configure-bind-as-a-private-network-dns-server-on-ubuntu-18-04
 * https://kb.isc.org/docs/aa-01526
 * https://www.zytrax.com/books/dns/ch7/logging.html
-* https://bind9.readthedocs.io/en/stable/
 
 
 
