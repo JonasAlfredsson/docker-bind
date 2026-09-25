@@ -51,7 +51,12 @@ jobs:
         run: docker run --rm bind:downloader cat /source/meson.options | diff --unified .github/current_meson.options -
 
       - name: Check for changes in root.hints
-        run: docker run --rm bind:downloader curl -sSLf --retry 3 --retry-delay 2 "https://www.internic.net/domain/named.cache" | sed 's/[[:space:]]*$//' | diff --unified root/etc/bind/root.hints -
+        run: |
+          sanitize_root_hints() {
+            # Exclude volatile upstream metadata so only meaningful root-hints changes fail the check.
+            grep -v 'last update:' | grep -v 'related version of root zone:' | sed 's/[[:space:]]*$//'
+          }
+          docker run --rm bind:downloader curl -sSLf --retry 3 --retry-delay 2 "https://www.internic.net/domain/named.cache" | sanitize_root_hints | diff --unified <(sanitize_root_hints < root/etc/bind/root.hints) -
 
   docker_buildx_debian:
     needs: verify_upstream_sources
