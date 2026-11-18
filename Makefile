@@ -1,4 +1,4 @@
-BIND_VERSION="9.21.27"
+BIND_VERSION="9.21.28"
 
 .PHONY: build
 build:
